@@ -34,7 +34,7 @@ if (!$oldTrip) {
 $newCode = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
 
 // 2. Insert New Trip with the original image
-$insertTrip = $conn->prepare("INSERT INTO trip (tripName, destination, duration, image, invite_code, status, adminID) VALUES (?, ?, ?, ?, ?, 'Active', ?)");
+$insertTrip = $conn->prepare("INSERT INTO trip (tripName, destination, duration, image, invite_code, status, adminID) VALUES (?, ?, ?, ?, ?, 'active', ?)");
 $insertTrip->bind_param("sssssi", 
     $oldTrip['tripName'], 
     $oldTrip['destination'], 

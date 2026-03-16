@@ -4,6 +4,7 @@ header("Content-Type: application/json");
 include 'db_config.php'; 
 
 try {
+    // Validate that userID is provided in the GET request
     if (!isset($_GET['userID']) || empty($_GET['userID'])) {
         echo json_encode(["error" => "User ID is required"]);
         exit;
@@ -11,7 +12,11 @@ try {
 
     $currentUserID = intval($_GET['userID']);
 
-    // Updated Query: Select trips where user is admin OR a member in group_member table
+    /**
+     * The query selects trips where the logged-in user is a member.
+     * It performs an INNER JOIN with group_member to ensure the user belongs to the trip.
+     * It filters by status = 'Active' to show only ongoing trips.
+     */
     $sql = "SELECT 
                 t.tripId AS id, 
                 t.tripName AS title, 
@@ -31,7 +36,7 @@ try {
         throw new Exception("Query preparation failed: " . $conn->error);
     }
 
-    // Bind the userID once (only checking membership now)
+    // Bind the current user's ID to the query
     $stmt->bind_param("i", $currentUserID);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -41,6 +46,7 @@ try {
         $trips[] = $row; 
     }
 
+    // Clear buffer and return JSON encoded trip list
     ob_end_clean();
     echo json_encode($trips);
 
