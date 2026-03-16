@@ -1,0 +1,55 @@
+<?php
+ob_start();
+header("Content-Type: application/json");
+include 'db_config.php'; 
+
+try {
+    if (!isset($_GET['userID']) || empty($_GET['userID'])) {
+        echo json_encode(["error" => "User ID is required"]);
+        exit;
+    }
+
+    $currentUserID = intval($_GET['userID']);
+
+    // Updated Query: Select trips where user is admin OR a member in group_member table
+    $sql = "SELECT 
+                t.tripId AS id, 
+                t.tripName AS title, 
+                t.invite_code AS code, 
+                t.destination, 
+                t.startDate, 
+                t.duration, 
+                t.image 
+            FROM trip t
+            INNER JOIN group_member gm ON t.tripId = gm.tripID
+            WHERE gm.userID = ? 
+            AND t.status = 'Active'";
+
+    $stmt = $conn->prepare($sql);
+    
+    if (!$stmt) {
+        throw new Exception("Query preparation failed: " . $conn->error);
+    }
+
+    // Bind the userID once (only checking membership now)
+    $stmt->bind_param("i", $currentUserID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $trips = [];
+    while($row = $result->fetch_assoc()) {
+        $trips[] = $row; 
+    }
+
+    ob_end_clean();
+    echo json_encode($trips);
+
+} catch (Exception $e) {
+    ob_end_clean();
+    http_response_code(500);
+    echo json_encode(["error" => $e->getMessage()]);
+} finally {
+    if (isset($stmt)) $stmt->close();
+    if (isset($conn)) $conn->close();
+}
+?>
