@@ -11,9 +11,9 @@ if ($userID === 0) {
 }
 
 // 1. FETCH ONLY ACTIVE TRIPS THE USER IS A MEMBER OF
-// Added filter: t.status = 'active'
+// Added t.image to the SELECT statement as seen in get_active_trips.php
 $tripStmt = $conn->prepare("
-    SELECT t.tripID, t.tripName as title, t.destination, t.status
+    SELECT t.tripID, t.tripName as title, t.destination, t.status, t.image
     FROM trip t
     INNER JOIN group_member gm ON t.tripID = gm.tripID
     WHERE gm.userID = ? AND t.status = 'active'
@@ -29,7 +29,6 @@ while ($trip = $tripsResult->fetch_assoc()) {
     $currentTripID = $trip['tripID'];
     
     // 2. FETCH EXPENSES FOR THIS TRIP
-    // Linking expense.tripID to the current active trip
     $expStmt = $conn->prepare("
         SELECT e.expenseID, e.amount, e.description, u.username as payerName
         FROM expense e
